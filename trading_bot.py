@@ -36,7 +36,7 @@ class PaperTradingBot(object):
                 self.position = 0
 
         # Fill in the current order for each symbol.
-        existing_orders = self.api.list_orders(limit=1)
+        existing_orders = self.api.list_orders(status='open', limit=500)
         for order in existing_orders:
             symbol = order.symbol
             id = order.id
