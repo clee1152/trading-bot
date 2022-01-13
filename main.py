@@ -14,15 +14,17 @@ else:
     key = line1.rstrip("\n")
     secret = line2.rstrip("\n")
 
-option = input("Enter 'CUSTOM' for Custom List of Stocks: ")
+option = input("Custom Stocks? (Y/N): ")
 
-if "CUSTOM" not in option:
-    number = int(input("Enter Number of S&P 500 Stocks: "))
-    stocks = []
-else:
+if "Y" in option:
     stocks = input("Enter Custom List of Stocks: ").split()
     number = len(stocks)
+else:
+    number = int(input("Enter Number of S&P 500 Stocks: "))
+    stocks = []
+    
 
 bp = int(input("Enter Buying Power: "))
 
-strats.sma_crossover(key, secret, number, bp, stocks)
+# strats.sma_crossover(key, secret, number, bp, stocks)
+# strats.capm(key, secret, number, bp, stocks)
