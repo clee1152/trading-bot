@@ -8,12 +8,12 @@ class PaperTradingBot(object):
     '''
     This method initializes the TradingBot object.
     '''
-    def __init__(self, key="", secret="", numTickers=1):
+    def __init__(self, key="", secret="", numTickers=1, stocks=[]):
         self.key = key
         self.secret = secret
         self.endpoint = 'https://paper-api.alpaca.markets'
         self.api = tradeapi.REST(self.key, self.secret, self.endpoint)
-        self.symbols = self.get_tickers(numTickers)
+        self.symbols = self.get_tickers(numTickers, stocks)
         self.current_orders = [None] * len(self.symbols)
         self.last_deltas = [0] * len(self.symbols)
         self.last_prices = [0] * len(self.symbols)
@@ -36,7 +36,7 @@ class PaperTradingBot(object):
                 self.position = 0
 
         # Fill in the current order for each symbol.
-        existing_orders = self.api.list_orders(status='open', limit=100)
+        existing_orders = self.api.list_orders(limit=1)
         for order in existing_orders:
             symbol = order.symbol
             id = order.id
@@ -95,21 +95,24 @@ class PaperTradingBot(object):
     This method returns a list of the S&P 500 companies and their tickers
     and saves them into symbols.
     '''
-    def get_tickers(self, numTickers):  
+    def get_tickers(self, numTickers, stocks):  
 
-        # Get the S&P 500 data from Wikipedia.
-        resp = requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
-        soup = bs.BeautifulSoup(resp.text, 'lxml')
-        table = soup.find('table', {'class': 'wikitable sortable'})
+        if not stocks:
+            # Get the S&P 500 data from Wikipedia.
+            resp = requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+            soup = bs.BeautifulSoup(resp.text, 'lxml')
+            table = soup.find('table', {'class': 'wikitable sortable'})
 
-        # Put the ticker symbols into tickers.
-        tickers = []
-        for row in table.findAll('tr')[1:]:
-            ticker = row.findAll('td')[0].text
-            if '.' not in ticker:
-                tickers.append(ticker[:-1])
+            # Put the ticker symbols into tickers.
+            tickers = []
+            for row in table.findAll('tr')[1:]:
+                ticker = row.findAll('td')[0].text
+                if '.' not in ticker:
+                    tickers.append(ticker[:-1])
 
-        tickers = tickers[0:min(numTickers,500)]
+            tickers = tickers[0:min(numTickers,500)]
+        else:
+            tickers = stocks
 
         return tickers
 
@@ -117,9 +120,7 @@ class PaperTradingBot(object):
     This method closes all current positions.
     '''
     def close_positions(self):
-        for index in range(len(self.current_orders)):
-            if self.current_orders[index] is not None: 
-                print(f"CLOSED: [{self.last_deltas[index]:4d}] OF [{self.symbols[index]:>4s}] AT $[{self.last_prices[index]:8.2f}] EACH")
-                self.last_deltas[index] = 0
-                self.api.cancel_order(self.current_orders[index].id)
-                self.current_orders[index] = None
+        existing_orders = self.api.list_orders(limit=500)
+        for order in existing_orders:
+            print(f"CLOSED: [{int(order.qty):4d}] OF [{order.symbol:>4s}] AT $[{float(order.limit_price):8.2f}] EACH")
+            self.api.cancel_order(order.id)

@@ -8,13 +8,17 @@ the SMA Crossover strategy. We will use the 10-day
 SMA as the short moving average and the 20-day SMA 
 as the long moving average.
 '''
-def sma_crossover(key, secret, number, bp=0):
+def sma_crossover(key, secret, number, bp=0, stocks=[]):
 
-    percent = float(1 / number)
+    # Get the percent of the portfolio each stock takes up.
+    if not stocks:
+        percent = float(1 / number)
+    else:
+        percent = float(1 / len(stocks))
     pc_bp = percent * bp
 
     # Initialize the trading bot.
-    bot = tb.PaperTradingBot(key, secret, number)
+    bot = tb.PaperTradingBot(key, secret, number, stocks)
     bot.close_positions()
     tickers = bot.symbols
 
@@ -44,6 +48,4 @@ def sma_crossover(key, secret, number, bp=0):
     textfile = open("buying_power.txt", "a")
     textfile.write(str(dt.datetime.today().date()) + " | New Buying Power: " + str(bp) + "\n")
     textfile.close()
-
-            
             
