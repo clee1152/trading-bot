@@ -27,4 +27,4 @@ else:
 bp = int(input("Enter Buying Power: "))
 
 # strats.sma_crossover(key, secret, number, bp, stocks)
-# strats.capm(key, secret, number, bp, stocks)
+strats.capm(key, secret, number, bp, stocks)

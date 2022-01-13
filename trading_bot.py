@@ -117,10 +117,16 @@ class PaperTradingBot(object):
         return tickers
 
     '''
-    This method closes all current positions.
+    This method cancels all orders.
     '''
-    def close_positions(self):
+    def cancel_orders(self):
         existing_orders = self.api.list_orders(limit=500)
         for order in existing_orders:
             print(f"CLOSED: [{int(order.qty):4d}] OF [{order.symbol:>4s}] AT $[{float(order.limit_price):8.2f}] EACH")
             self.api.cancel_order(order.id)
+
+    '''
+    This method closes all positions.
+    '''
+    def close_positions(self):
+        self.api.close_all_positions()

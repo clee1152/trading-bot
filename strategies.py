@@ -20,7 +20,7 @@ def sma_crossover(key, secret, number, bp=0, stocks=[]):
 
     # Initialize the trading bot.
     bot = tb.PaperTradingBot(key, secret, number, stocks)
-    bot.close_positions()
+    bot.cancel_orders()
     tickers = bot.symbols
 
     # Gather the quotes from the last 20 dates and
@@ -56,11 +56,11 @@ the Capital Asset Pricing Model.
 
 A few assumptions: 
 
-Expected Market Return (erm): 10-day EMA
-Risk-Free Rate of Interest (rfrate): 0.05
-Sensitivity (beta): Cov(ticker, VOO) / Var(ticker) --> Least Squares
+Expected Market Return (erm): 0.10
+Risk-Free Rate of Interest (rfrate): 0.0012
+Sensitivity (beta): Cov(ticker, VOO) / Var(ticker)
 '''
-def capm(key, secret, number, bp=0, stocks=[]):
+def capm(key, secret, number, bp=0, stocks=[], rfrate=0.0012, erm=0.10):
 
     # Get the percent of the portfolio each stock takes up.
     if not stocks:
@@ -69,12 +69,9 @@ def capm(key, secret, number, bp=0, stocks=[]):
         percent = float(1 / len(stocks))
     pc_bp = percent * bp
 
-    # Risk-free rate.
-    rfrate = 0.05
-
     # Initialize the trading bot.
     bot = tb.PaperTradingBot(key, secret, number, stocks)
-    bot.close_positions()
+    bot.cancel_orders()
     tickers = bot.symbols
 
     # Get the prices for VOO.
@@ -90,23 +87,20 @@ def capm(key, secret, number, bp=0, stocks=[]):
         prices = pd.concat([voo_prices, indiv_prices], axis=1)
         prices = (prices/prices.shift(1) - 1.0)[1:]
         cum_prices = (prices + 1.0).cumprod()
-        beta = np.linalg.lstsq(cum_prices['VOO'], cum_prices[tickers[i]], rcond=None)[0][0][0]
-
-        # Find the 10-day SMA.
-        erm = indiv_barset.iloc[:,3].rolling(window=10, min_periods=1).mean()[len(indiv_barset) - 1]
+        cov = cum_prices.cov()
+        beta = abs(cov.iloc[0][1] / cov.iloc[0][0])
 
         # Calculate capital asset expected return.
-        eri = beta * erm * (1 - rfrate)
-        eri = round(eri, 2)
+        eri = rfrate + beta * (erm - rfrate)
 
-        # Calculate the difference between number of expected stocks and number of stocks 
-        # and submit the order.
-        exp_num = int(pc_bp / eri)
-        delta = exp_num - bot.positions[i]
-        bot.submit_order(i, delta)
-
-        # Update buying power.
-        bp += delta * bot.last_prices[i]
+        # If eri is negative we buy. Otherwise, we sell.
+        if eri > 0:
+            num_bought = int(pc_bp / bot.last_prices[i])
+            bp -= num_bought * bot.last_prices[i]
+            bot.submit_order(i, num_bought)
+        else:
+            bp += bot.positions[i] * bot.last_prices[i]
+            bot.submit_order(i, bot.positions[i])
 
     # Print out the new buying power and append it to a text file.
     print(f"New Buying Power: ${bp:.2f}")
