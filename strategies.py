@@ -54,7 +54,7 @@ def sma_crossover(key, secret, number, bp=0, stocks=[], ssma=10, lsma=20):
     # Print out the new buying power and append it to a text file.
     print(f"New Buying Power: ${bp:.2f}")
     textfile = open("buying_power.txt", "a")
-    textfile.write(str(dt.datetime.today().date()) + " | New Buying Power: " + str(bp) + "\n")
+    textfile.write(str(dt.datetime.today().date()) + " | New Buying Power: " + str(round(bp, 2)) + "\n")
     textfile.close()
 
 '''
@@ -115,7 +115,7 @@ def capm(key, secret, number, bp=0, stocks=[], rfrate=0.0012, erm=0.10):
     # Print out the new buying power and append it to a text file.
     print(f"New Buying Power: ${bp:.2f}")
     textfile = open("buying_power.txt", "a")
-    textfile.write(str(dt.datetime.today().date()) + " | New Buying Power: " + str(bp) + "\n")
+    textfile.write(str(dt.datetime.today().date()) + " | New Buying Power: " + str(round(bp, 2)) + "\n")
     textfile.close()
 
 '''
@@ -150,7 +150,6 @@ def rsi(key, secret, number, bp=0, stocks=[], threshold=30, ema=20):
 
         rsi = ta.RSI(data.iloc[:,3], timeperiod=2)
 
-        print(rsi)
         # If RSI fulfills the conditions, we buy or sell accordingly.
         if rsi[len(rsi) - 2] > threshold and rsi[len(rsi) - 1] < threshold:
             num_bought = int(pc_bp / bot.last_prices[i])
@@ -164,6 +163,5 @@ def rsi(key, secret, number, bp=0, stocks=[], threshold=30, ema=20):
     # Print out the new buying power and append it to a text file.
     print(f"New Buying Power: ${bp:.2f}")
     textfile = open("buying_power.txt", "a")
-    textfile.write(str(dt.datetime.today().date()) + " | New Buying Power: " + str(bp) + "\n")
+    textfile.write(str(dt.datetime.today().date()) + " | New Buying Power: " + str(round(bp, 2)) + "\n")
     textfile.close()
-    
