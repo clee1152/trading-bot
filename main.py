@@ -23,8 +23,8 @@ else:
     number = int(input("Enter Number of S&P 500 Stocks: "))
     stocks = []
     
-
 bp = int(input("Enter Buying Power: "))
 
 # strats.sma_crossover(key, secret, number, bp, stocks)
-strats.capm(key, secret, number, bp, stocks)
+# strats.capm(key, secret, number, bp, stocks)
+# strats.rsi(key, secret, number, bp, stocks)
